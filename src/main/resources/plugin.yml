@@ -2,3 +2,20 @@ name: ItemRent
 version: '${version}'
 main: xyz.steffq.itemrent.ItemRent
 api-version: '1.20'
+author: Steff
+description: Rent items for a certain amount of time
+commands:
+  itemrent:
+    description: Your command description
+    usage: /itemrent <subcommand> [args]
+    aliases: [ir, itemr]
+    permission: itemrent.use
+    permission-message: You don't have permission to use this command!
+    tab-complete: /itemrent add <tab1> <tab2>
+    subcommands:
+      add:
+        description: Add an item to the menu
+        usage: /itemrent add <slot> <price>
+        aliases: [a, additem]
+        permission: itemrent.add
+        permission-message: You don't have permission to add items!

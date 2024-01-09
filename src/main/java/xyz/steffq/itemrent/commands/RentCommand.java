@@ -1,97 +1,102 @@
-package xyz.steffq.itemrent.menus;
+package xyz.steffq.itemrent.commands;
 
-import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import xyz.steffq.itemrent.ItemRent;
+import xyz.steffq.itemrent.menus.RentMenu;
 
-public class RentMenu implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.List;
 
-    private final ItemRent plugin;
-    private int slots;
-    private String menuName;
-    private Inventory openedInventory;
+public class RentCommand implements CommandExecutor {
 
-    public RentMenu(ItemRent plugin) {
-        this.plugin = plugin;
-    }
+    private List<String> lores;
 
     public void reload() {
-        plugin.reloadConfig();
-        menuName = plugin.getConfigYml().options().getString("menu-name");
-        slots = plugin.getConfigYml().options().getInt("menu-size");
-    }
+        lores = ItemRent.getConfigYml().options().getStringList("lore");
 
+    }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
+        if (!(sender instanceof Player)) {
             sender.sendMessage("Only players can use this command.");
             return true;
         }
 
-        // /itemrent add <slot> <price>
+        Player player = (Player) sender;
 
         if (args.length == 0) {
-            openedInventory = inventory();  // Store the opened inventory
-            player.openInventory(openedInventory);
+            Inventory inv = RentMenu.getInv();
+            player.openInventory(inv);
             return true;
         }
 
-        if (args[0].equalsIgnoreCase("add")) {
-            // Check if the correct number of arguments is provided
-            if (args.length == 3) {
+
+        if (command.getName().equalsIgnoreCase("itemrent")) {
+
+
+            if (args.length >= 3 && args[0].equalsIgnoreCase("add")) {
                 try {
                     int slot = Integer.parseInt(args[1]);
                     double price = Double.parseDouble(args[2]);
 
-                    if (price <= 0) {
-                        player.sendMessage("Price must be greater than zero.");
-                        return true;
-                    }
+                    ItemStack item = createRentalItem(player, price);
 
-                    addItemToMenu(player, slot, price);
+
+                    addItemToMenu(player, slot, item);
+
+                    player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+
+                    player.sendMessage("Item added to the menu!");
                 } catch (NumberFormatException e) {
-                    player.sendMessage("Invalid arguments. Please provide a valid slot and price for the item.");
+                    player.sendMessage("Invalid arguments. Please use /itemrent add <slot> <price>");
                 }
-            } else {
-                player.sendMessage("Usage: /itemrent add <slot> <price>");
+                return true;
             }
-            return true;
         }
-
         return false;
     }
 
-    private void addItemToMenu(Player player, int slot, double price) {
-        // Check if Vault is enabled
-        if (plugin.getEconomy() == null) {
-            player.sendMessage("Vault not found. Economy features are disabled.");
-            return;
+    private ItemStack createRentalItem(Player player, double price) {
+
+        reload();
+
+        ItemStack item = player.getInventory().getItemInMainHand().clone();
+        ItemMeta meta = item.getItemMeta();
+
+        List<String> updatedLores = new ArrayList<>();
+
+        for (String lore : lores) {
+            updatedLores.add(ChatColor.translateAlternateColorCodes('&', lore.
+                    replace("{OWNER}", player.getName()).
+                    replace("{PRICE}", String.valueOf(price))));
         }
 
-        // Use the previously opened inventory
-        if (openedInventory != null) {
-            ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        meta.setLore(updatedLores);
 
-            if (!itemInHand.getType().isAir()) {
-                ItemStack newItem = new ItemStack(itemInHand);
+        item.setItemMeta(meta);
+        return item;
+    }
 
-                // You can access and copy the enchantments and item meta
-                newItem.addUnsafeEnchantments(itemInHand.getEnchantments());
-                newItem.setItemMeta(itemInHand.getItemMeta());
+    public void addItemToMenu (Player player, int slot, ItemStack item) {
 
-                // For simplicity, assume slots are identified by item names
-                openedInventory.setItem(slot, newItem);
+        Inventory inv = RentMenu.getInv();
 
-                player.sendMessage("Item in hand added to the menu with enchantments and meta!");
-            } else {
-                player.sendMessage("You must be holding an item in your hand to use this command.");
-            }
+        if (slot >= 0 && slot < inv.getSize()) {
+            inv.setItem(slot, item);
+        } else {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cInvalid slot. Please provide a slot between 0 and " + (inv.getSize() - 1) + "."));
         }
+
+        player.closeInventory();
+        player.openInventory(inv);
+
     }
 }

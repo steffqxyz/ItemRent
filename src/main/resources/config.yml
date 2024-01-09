@@ -1,0 +1,8 @@
+menu-name: "&cItem Rent"
+menu-size: 36
+
+# This lore will be added to all the items in the menu.
+lore:
+  - ''
+  - 'Owner: &c{OWNER}'
+  - 'Price: &c{PRICE}'
