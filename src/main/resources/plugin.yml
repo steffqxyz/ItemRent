@@ -1,0 +1,4 @@
+name: ItemRent
+version: '${version}'
+main: xyz.steffq.itemrent.ItemRent
+api-version: '1.20'
