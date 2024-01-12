@@ -9,7 +9,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import xyz.steffq.itemrent.ItemRent;
 
-public class RentMenu implements Listener {
+public class RentMenu {
 
     private static String menuName;
     private static int slots;
@@ -33,14 +33,6 @@ public class RentMenu implements Listener {
 
         inventory = Bukkit.createInventory(null, slots, ChatColor.translateAlternateColorCodes('&', menuName));
     }
-
-    @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getInventory().equals(inventory)) {
-            event.setCancelled(true);
-        }
-    }
-
     public static Inventory getInv() {
         return inventory;
     }

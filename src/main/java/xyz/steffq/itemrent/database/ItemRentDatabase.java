@@ -13,10 +13,12 @@ public class ItemRentDatabase {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + path);
             try (Statement statement = connection.createStatement()) {
-                statement.execute("CREATE TABLE IF NOT EXISTS items (\n" +
+                statement.execute("CREATE TABLE IF NOT EXISTS rented_items (\n" +
                         "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                         "    slot INTEGER,\n" +
-                        "    item_data TEXT\n" +
+                        "    price REAL,\n" +
+                        "    owner TEXT,\n" +
+                        "    item_name TEXT\n" +
                         ");");
 
             }
